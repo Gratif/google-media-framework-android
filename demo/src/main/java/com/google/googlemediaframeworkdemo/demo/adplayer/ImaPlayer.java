@@ -56,7 +56,7 @@ import java.util.List;
 public class ImaPlayer {
 
   private static String PLAYER_TYPE = "google/gmf-android";
-  private static String PLAYER_VERSION = "0.1.2";
+  private static String PLAYER_VERSION = "0.2.0";
 
   /**
    * The activity that is displaying this video player.
@@ -94,6 +94,8 @@ public class ImaPlayer {
    * Responsible for containing listeners for processing the elements of the ad.
    */
   private AdsManager adsManager;
+
+  private AdListener adListener;
 
   /**
    * These callbacks are notified when the video is played and when it ends. The IMA SDK uses this
@@ -367,7 +369,7 @@ public class ImaPlayer {
     sdkSettings.setPlayerType(PLAYER_TYPE);
     sdkSettings.setPlayerVersion(PLAYER_VERSION);
     adsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, sdkSettings);
-    AdListener adListener = new AdListener();
+    adListener = new AdListener();
     adsLoader.addAdErrorListener(adListener);
     adsLoader.addAdsLoadedListener(adListener);
 
@@ -579,9 +581,15 @@ public class ImaPlayer {
   public void release() {
     if (adPlayer != null) {
       adPlayer.release();
+      adPlayer = null;
+    }
+    if (adsManager != null) {
+      adsManager.destroy();
+      adsManager = null;
     }
     adsLoader.contentComplete();
     contentPlayer.release();
+    adsLoader.removeAdsLoadedListener(adListener);
   }
 
   /**
@@ -632,7 +640,7 @@ public class ImaPlayer {
   }
 
   /**
-   * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and rmeove it.
+   * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and remove it.
    */
   private void destroyAdPlayer(){
     if(adPlayerContainer != null){
